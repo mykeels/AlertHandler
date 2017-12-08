@@ -1,0 +1,10 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+<link href="~/Content/toastr.css" rel="stylesheet" />
+<p>Use this area to provide additional information.</p>
+<script src="~/Scripts/jquery-1.10.2.js"></script>
+<script src="~/Scripts/toastr.js"></script>
+@Html.Raw(AlertHandler.AlertHandler.RenderMultipleNotifications("notification2"))
