@@ -11,6 +11,8 @@ namespace AlertHandler
     public class AlertHandler
     {
         private const string storageKey = "alert-notifications";
+        private const string storageKeyMultiple = "alert-notifications-Multi";
+
         private static HttpContext Context
         {
             get
@@ -18,7 +20,6 @@ namespace AlertHandler
                 return HttpContext.Current;
             }
         }
-
         private static HttpSessionState Session
         {
             get
@@ -27,39 +28,92 @@ namespace AlertHandler
             }
         }
 
-        private static List<AlertNotification> Notifications
+        private static Dictionary<string, AlertNotification> MultipleNotifications
+        {
+            get
+            {
+                if (Session[storageKeyMultiple] == null)
+                {
+                    Session[storageKeyMultiple] = new Dictionary<string, AlertNotification>();
+                }
+                return (Dictionary<string, AlertNotification>)Session[storageKeyMultiple];
+
+            }
+            set
+            {
+                Session[storageKeyMultiple] = value;
+            }
+        }
+        private static AlertNotification SingleNotification
         {
             get
             {
                 if (Session[storageKey] == null)
                 {
-                    Session[storageKey] = new List<AlertNotification>();
+                    Session[storageKey] = new AlertNotification();
                 }
-                return (List<AlertNotification>)Session[storageKey];
+                return (AlertNotification)Session[storageKey];
+            }
+            set
+            {
+
+                Session[storageKey] = value;
+
             }
         }
 
         public static void AddNotification(AlertNotification notification)
         {
-            Notifications.Add(notification);
+            SingleNotification = notification;
         }
 
-        public static string RenderNotifications()
+        public static void AddMultipleNotifications(Dictionary<string, AlertNotification> notifications)
         {
-            string ret = "<script>\n" +
-                            "$(document).ready(function () {\n" +
-                            String.Join("\n", Notifications.Select(notification => "app.notifyMe({ message: '" + notification.Message + "', type: '" + notification.Type.ToString().ToLower() + "' });")) +
-                            "});\n" +
-                        "</script>";
-            Notifications.Clear();
-            return ret;
+            foreach (var notification in notifications)
+            {
+                MultipleNotifications.Add(notification.Key, notification.Value);
+            }
         }
-
-        public static string RenderNotifications(Func<List<AlertNotification>, string> templateFn)
+        public static string RenderNotification()
         {
-            string ret = templateFn(Notifications);
-            Notifications.Clear();
-            return ret;
+            string toastrNotificationScript = "";
+            if (SingleNotification.Type == NotificationType.Success)
+            {
+
+                toastrNotificationScript = $"<script>toastr.success('{SingleNotification.Message}')</script>";
+            }
+            else
+            {
+                toastrNotificationScript = $"<script>toastr.error('{SingleNotification.Message}')</script>";
+            }
+
+            ClearSingleNotification();
+            return toastrNotificationScript;
+        }
+        public static string RenderMultipleNotifications(string key)
+        {
+            string toastrNotificationScript = "";
+            AlertNotification selectedNotification = MultipleNotifications.FirstOrDefault(k => k.Key == key).Value;
+            if (selectedNotification.Type == NotificationType.Success)
+            {
+
+                toastrNotificationScript = $"<script>toastr.success('{selectedNotification.Message}')</script>";
+            }
+            else
+            {
+                toastrNotificationScript = $"<script>toastr.error('{selectedNotification.Message}')</script>";
+            }
+
+            ClearMultipleNotifcations();
+            return toastrNotificationScript;
+        }
+        private static void ClearSingleNotification()
+        {
+            SingleNotification = new AlertNotification() { Message = "", Type = NotificationType.Empty };
+        }
+        private static void ClearMultipleNotifcations()
+        {
+            MultipleNotifications = null;
         }
     }
 }

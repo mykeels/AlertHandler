@@ -1,0 +1,43 @@
+﻿
+using AlertHandler;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace ToastrTest.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            AlertNotification notification = new AlertNotification() { Message = "Hello", Type = NotificationType.Success };
+            AlertHandler.AlertHandler.AddNotification(notification);
+
+            return View();
+        }
+
+        public ActionResult About()
+        {
+            AlertNotification notification1 = new AlertNotification() { Message = "Hello", Type = NotificationType.Success };
+            AlertNotification notification2 = new AlertNotification() { Message = "Hi", Type = NotificationType.Success };
+            AlertNotification notification3 = new AlertNotification() { Message = "Yes", Type = NotificationType.Success };
+            AlertHandler.AlertHandler.AddMultipleNotifications(new Dictionary<string, AlertNotification>() {
+                   { "notification1",notification1 },
+                   { "notification2",notification2 },
+                   { "notification3",notification3 }
+            });
+
+
+            return View();
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
+            return View();
+        }
+    }
+}
